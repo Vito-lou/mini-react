@@ -1,5 +1,5 @@
 function createTextNode(text) {
-    console.log("heiheihei!!!!!!!");
+    console.log("h12");
     return {
         type: "TEXT_ELEMENT",
         props: {
@@ -28,8 +28,10 @@ function render(el, container) {
             children: [el],
         },
     };
+    root = nextWorkOfUnit
 }
 
+let root = null
 let nextWorkOfUnit = null;
 function workLoop(deadline) {
     let shouldYield = false;
@@ -39,9 +41,27 @@ function workLoop(deadline) {
 
         shouldYield = deadline.timeRemaining() < 1;
     }
-
+    //走到这里说明当前的链表处理完了
+    if (!nextWorkOfUnit && root) {
+        console.log(root)
+        commitRoot();
+    }
     requestIdleCallback(workLoop);
 }
+
+function commitRoot() {
+    commitWork(root.child)
+    //一定要设置为null， 不然会无限在浏览器空闲时调用commitRoot
+    root = null
+}
+
+function commitWork(fiber) {
+    if (!fiber) return;
+    fiber.parent.dom.append(fiber.dom);
+    commitWork(fiber.child);
+    commitWork(fiber.sibling);
+}
+
 
 function createDom(type) {
     return type === "TEXT_ELEMENT"
@@ -89,10 +109,10 @@ function performWorkOfUnit(fiber) {
     if (!fiber.dom) {
         const dom = (fiber.dom = createDom(fiber.type));
 
-        //相当于在父级元素append child
-        fiber.parent.dom.append(dom);
+        //相当于在父级元素append child----这个就可以去掉了；因为我们要统一提交，而不是每次浏览器空闲时间去创建dom
+        // fiber.parent.dom.append(dom);
 
-        updateProps(dom, fiber.props);
+        updateProps(dom, fiber.props); //注意这行看起来是更新了dom的props属性，比如id这些字段属性，但是实际上也赋值给了fiber.dom；看上面的赋值等式
     }
     //边建立关系，边进行渲染，而不是上来把整个链表的关系都建立起来
     initChildren(fiber)
