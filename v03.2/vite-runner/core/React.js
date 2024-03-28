@@ -151,7 +151,16 @@ function performWorkOfUnit(fiber) {
         return fiber.sibling;
     }
 
-    return fiber.parent?.sibling;
+    //注意这段逻辑非常重要
+    //函数式组件里面，假设结构是： root包含两个先后两个函数式节点，函数式节点下面各有一个div， div里面有text; 当走到第一个函数式节点最底下的text的时候，由于text下面没有
+    //child也没有sibling,所以需要找text的父级节点也就是div，可以div你发现也是没有sibling的，只有div的父级也就是函数式组件自身的fiber才有sibling; 
+    //因此下面需要做一个递归查找有sibling的父级节点
+    let nextFiber = fiber;
+    while (nextFiber) {
+        if (nextFiber.sibling) return nextFiber.sibling
+        nextFiber = nextFiber.parent
+    }
+    // return fiber.parent?.sibling;
 }
 
 requestIdleCallback(workLoop);
