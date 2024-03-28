@@ -23,6 +23,7 @@ function App() {
         <div id='test'>
             hi-mini-react
             <Counter num={10}></Counter>
+            <Counter num={20}></Counter>
             {/* <CounterContainer></CounterContainer> */}
         </div>
     )
