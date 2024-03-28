@@ -22,7 +22,7 @@ function createElement(type, props, ...children) {
 }
 
 function render(el, container) {
-
+    // debugger
     nextWorkOfUnit = {
         dom: container,
         props: {
@@ -58,7 +58,16 @@ function commitRoot() {
 
 function commitWork(fiber) {
     if (!fiber) return;
-    fiber.parent.dom.append(fiber.dom);
+
+    let fiberParent = fiber.parent
+    //函数式组件内部还可能包含函数式组件，嵌套层级，那么需要一直找到非函数式组件的祖先节点
+    while (!fiberParent.dom) {
+        fiberParent = fiberParent.parent
+    }
+
+    if (fiber.dom) {
+        fiberParent.dom.append(fiber.dom);
+    }
     commitWork(fiber.child);
     commitWork(fiber.sibling);
 }
@@ -111,7 +120,9 @@ function initChildren(fiber, children) {
 //4. 返回下一个要执行的任务
 function performWorkOfUnit(fiber) {
     const isFunctionComponent = typeof fiber.type === 'function'
-    //函数组件本身不是dom, 函数组件的里面，才会是dom
+    //函数组件本身不是dom, 函数组件的里面，才会是dom；
+    //注意注意：由于函数式组件没有dom，因此虽然身处fiber结构之中，但是函数式组件的fiber不会创建dom属性；由于没有dom属性，上面的commitWork函数就不能不判断是否是
+    //函数式组件再把当前fiber节点的dom传递进去
     if (!isFunctionComponent) {
         //第一次调用的时候是有dom的，是那个根container
         if (!fiber.dom) {

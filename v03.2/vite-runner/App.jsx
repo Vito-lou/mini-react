@@ -5,12 +5,16 @@ import CReact from "./core/React.js"
 function Counter() {
     return <div>count </div>
 }
+function CounterContainer() {
+    return <Counter></Counter>
+}
 console.log(123)
 
 const App = (
     <div id='test'>
         hi-mini-react
-        <Counter></Counter>
+        {/* <Counter></Counter> */}
+        <CounterContainer></CounterContainer>
     </div>
 )
 
