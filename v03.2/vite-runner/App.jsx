@@ -10,12 +10,20 @@ function CounterContainer() {
 }
 console.log(123)
 
-const App = (
-    <div id='test'>
-        hi-mini-react
-        {/* <Counter></Counter> */}
-        <CounterContainer></CounterContainer>
-    </div>
-)
-
+// const App = (
+//     <div id='test'>
+//         hi-mini-react
+//         {/* <Counter></Counter> */}
+//         <CounterContainer></CounterContainer>
+//     </div>
+// )
+function App() {
+    return (
+        <div id='test'>
+            hi-mini-react
+            {/* <Counter></Counter> */}
+            <CounterContainer></CounterContainer>
+        </div>
+    )
+}
 export default App;
