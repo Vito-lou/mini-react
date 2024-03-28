@@ -1,5 +1,4 @@
 function createTextNode(text) {
-    console.log("h12");
     return {
         type: "TEXT_ELEMENT",
         props: {
@@ -15,7 +14,10 @@ function createElement(type, props, ...children) {
         props: {
             ...props,
             children: children.map((child) => {
-                return typeof child === "string" ? createTextNode(child) : child;
+                //child 极有可能是一个字符串，也有可能是一个数字
+                const isTextNode =
+                    typeof child === "string" || typeof child === "number";
+                return isTextNode ? createTextNode(child) : child;
             }),
         },
     };
@@ -91,7 +93,8 @@ function updateProps(dom, props) {
 function initChildren(fiber, children) {
     const isFunctionComponent = typeof fiber.type === 'function'
     if (isFunctionComponent) {
-        console.log(44, fiber.type())
+        //思考：为什么下面加这行打印就是会报错，不加就能渲染出来？
+        // console.log(44, fiber.type())
     }
     let prevChild = null;
     children.forEach((child, index) => {
@@ -136,7 +139,7 @@ function performWorkOfUnit(fiber) {
     }
 
     //边建立关系，边进行渲染，而不是上来把整个链表的关系都建立起来: 注意children必须是数组格式
-    let children = isFunctionComponent ? [fiber.type()] : fiber.props.children
+    let children = isFunctionComponent ? [fiber.type(fiber.props)] : fiber.props.children
     initChildren(fiber, children)
 
     // 4. 返回下一个要执行的任务
