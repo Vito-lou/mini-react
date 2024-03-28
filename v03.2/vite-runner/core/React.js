@@ -117,41 +117,46 @@ function initChildren(fiber, children) {
     });
 }
 
+function updateFunctionComponent(fiber) {
+    const children = [fiber.type(fiber.props)];
+
+    initChildren(fiber, children);
+}
+
+function updateHostComponent(fiber) {
+    if (!fiber.dom) {
+        const dom = (fiber.dom = createDom(fiber.type));
+
+        updateProps(dom, fiber.props);
+    }
+
+    const children = fiber.props.children;
+    initChildren(fiber, children);
+}
 //1. 创建DOM
 //2. 处理props
 //3. 转换链表，设置好指针
 //4. 返回下一个要执行的任务
 function performWorkOfUnit(fiber) {
-    const isFunctionComponent = typeof fiber.type === 'function'
-    //函数组件本身不是dom, 函数组件的里面，才会是dom；
-    //注意注意：由于函数式组件没有dom，因此虽然身处fiber结构之中，但是函数式组件的fiber不会创建dom属性；由于没有dom属性，上面的commitWork函数就不能不判断是否是
-    //函数式组件再把当前fiber节点的dom传递进去
-    if (!isFunctionComponent) {
-        //第一次调用的时候是有dom的，是那个根container
-        if (!fiber.dom) {
-            const dom = (fiber.dom = createDom(fiber.type));
+    const isFunctionComponent = typeof fiber.type === "function";
 
-            //相当于在父级元素append child----这个就可以去掉了；因为我们要统一提交，而不是每次浏览器空闲时间去创建dom
-            // fiber.parent.dom.append(dom);
-
-            updateProps(dom, fiber.props); //注意这行看起来是更新了dom的props属性，比如id这些字段属性，但是实际上也赋值给了fiber.dom；看上面的赋值等式
-        }
+    if (isFunctionComponent) {
+        updateFunctionComponent(fiber)
+    } else {
+        updateHostComponent(fiber)
     }
-
-    //边建立关系，边进行渲染，而不是上来把整个链表的关系都建立起来: 注意children必须是数组格式
-    let children = isFunctionComponent ? [fiber.type(fiber.props)] : fiber.props.children
-    initChildren(fiber, children)
 
     // 4. 返回下一个要执行的任务
     if (fiber.child) {
         return fiber.child;
     }
 
-    if (fiber.sibling) {
-        return fiber.sibling;
-    }
+    //这一段不要了，因为下面的循环里面已经做了判断
+    // if (fiber.sibling) {
+    //     return fiber.sibling;
+    // }
 
-    //注意这段逻辑非常重要
+    //注意这段逻辑非常重要： 没有下面这段，在app.jsx里面无法渲染两个同级别函数式组件；注意同级别；链表是先走完第一个函数式组件树fiber然后才能去找第二个函数式组件的
     //函数式组件里面，假设结构是： root包含两个先后两个函数式节点，函数式节点下面各有一个div， div里面有text; 当走到第一个函数式节点最底下的text的时候，由于text下面没有
     //child也没有sibling,所以需要找text的父级节点也就是div，可以div你发现也是没有sibling的，只有div的父级也就是函数式组件自身的fiber才有sibling; 
     //因此下面需要做一个递归查找有sibling的父级节点
