@@ -37,6 +37,7 @@ function render(el, container) {
 let wipRoot = null
 let currentRoot = null // 调用update更新的时候用到
 let nextWorkOfUnit = null;
+let deletions = []
 function workLoop(deadline) {
     let shouldYield = false;
     //注意走到最后一个节点的时候，节点后面一个会是undefined, 因此这里要加上nextWorkOfUnit判断拦截一下，防止报错
@@ -53,12 +54,16 @@ function workLoop(deadline) {
 }
 
 function commitRoot() {
+    deletions.forEach(commitDeletion)
     commitWork(wipRoot.child)
     //一定要设置为null， 不然会无限在浏览器空闲时调用commitRoot
     currentRoot = wipRoot //初始化结束以后，就把这个root存下来。保证后续update的时候，自动拿到当前的root
     wipRoot = null
+    deletions = []
 }
-
+function commitDeletion(fiber) {
+    fiber.parent.dom.removeChild(fiber.dom)
+}
 function commitWork(fiber) {
     if (!fiber) return;
 
@@ -161,6 +166,10 @@ function reconcileChildren(fiber, children) {
                 dom: null,
                 effectTag: 'placement'  //这个标识，是用来将来commitWork的时候区分到底这个节点上要更新还是要创建
             };
+            if (oldFiber) {
+                deletions.push(oldFiber)
+            }
+            console.log('should delete fiber', oldFiber)
         }
         //当处理第二个孩子的时候，就一定是需要更新oldFiber； 也就是index=0走完以后，接下来走index=1开始，指针需要改变
         if (oldFiber) {
