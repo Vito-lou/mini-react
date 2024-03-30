@@ -62,7 +62,16 @@ function commitRoot() {
     deletions = []
 }
 function commitDeletion(fiber) {
-    fiber.parent.dom.removeChild(fiber.dom)
+    if (fiber.dom) {
+        let fiberParent = fiber.parent
+        while (!fiberParent.dom) {
+            fiberParent = fiberParent.parent
+        }
+        fiberParent.dom.removeChild(fiber.dom)
+    } else {
+        commitDeletion(fiber.child)
+    }
+
 }
 function commitWork(fiber) {
     if (!fiber) return;
