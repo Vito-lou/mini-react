@@ -1,16 +1,19 @@
 /** @jsx CReact.createElement */
 import CReact from "./core/React.js"
-
+//测试props更新
 let count = 10;
+//测试props删除
+let props = { id: 111 }
 //注意不能写成小写，jsx只会把大写字母开头的标签当作组件调用，小写字母开头的就是html标签
 function Counter({ num }) {
     function handleClick() {
         console.log('click trigger')
         count++
+        props = {}
         console.log('now count', count)
         CReact.update()
     }
-    return <div>
+    return <div {...props}>
         count: {count}
         <button onClick={handleClick}>click here</button>
     </div>

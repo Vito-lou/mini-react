@@ -108,7 +108,7 @@ function updateProps(dom, nextProps, prevProps) {
     Object.keys(nextProps).forEach((key) => {
         if (key !== "children") {
             if (nextProps[key] !== prevProps[key]) {
-                debugger
+                // debugger
                 if (key.startsWith('on')) {
                     const eventType = key.slice(2).toLowerCase()
                     //一定要注意，绑定事件的时候，每次渲染，函数都会重新生成；不然也走不到这里来nextProps[key] !== prevProps[key]
