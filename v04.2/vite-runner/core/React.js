@@ -24,7 +24,6 @@ function createElement(type, props, ...children) {
 }
 
 function render(el, container) {
-    // debugger
     nextWorkOfUnit = {
         dom: container,
         props: {
@@ -89,7 +88,7 @@ function createDom(type) {
 }
 
 function updateProps(dom, nextProps, prevProps) {
-
+    // debugger
     //分析：总共三种情况
     //1. old 有，new没有，需要删除
     //2. old没有，new有， 需要添加
@@ -109,8 +108,15 @@ function updateProps(dom, nextProps, prevProps) {
     Object.keys(nextProps).forEach((key) => {
         if (key !== "children") {
             if (nextProps[key] !== prevProps[key]) {
+                debugger
                 if (key.startsWith('on')) {
                     const eventType = key.slice(2).toLowerCase()
+                    //一定要注意，绑定事件的时候，每次渲染，函数都会重新生成；不然也走不到这里来nextProps[key] !== prevProps[key]
+                    // 每次渲染的函数都不想等，这也就导致每次渲染，dom上之前绑定的事件监听器还在，因此需要清除事件监听，并且更重要的是清除之前绑定的
+                    //事件监听
+                    dom.removeEventListener(eventType, prevProps[key])
+                    // 删除要是写成下面这个就错了，因为我们是要remove掉之前的监听器
+                    // dom.removeEventListener(eventType, nextProps[key])
                     dom.addEventListener(eventType, nextProps[key])
                 } else {
                     dom[key] = nextProps[key];
