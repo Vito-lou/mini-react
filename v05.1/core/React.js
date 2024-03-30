@@ -24,16 +24,17 @@ function createElement(type, props, ...children) {
 }
 
 function render(el, container) {
-    nextWorkOfUnit = {
+    wipRoot = {
         dom: container,
         props: {
             children: [el],
         },
     };
-    root = nextWorkOfUnit
+    nextWorkOfUnit = wipRoot
 }
-
-let root = null
+//之前叫root节点，我们发现这个节点后面是一直在不断的构建，直到最终提交commitwork
+//因此可以认为这个叫root的节点是 work in progress，正在工作中的root; 因此改名叫wipRoot
+let wipRoot = null
 let currentRoot = null // 调用update更新的时候用到
 let nextWorkOfUnit = null;
 function workLoop(deadline) {
@@ -45,17 +46,17 @@ function workLoop(deadline) {
         shouldYield = deadline.timeRemaining() < 1;
     }
     //走到这里说明当前的链表处理完了
-    if (!nextWorkOfUnit && root) {
+    if (!nextWorkOfUnit && wipRoot) {
         commitRoot();
     }
     requestIdleCallback(workLoop);
 }
 
 function commitRoot() {
-    commitWork(root.child)
+    commitWork(wipRoot.child)
     //一定要设置为null， 不然会无限在浏览器空闲时调用commitRoot
-    currentRoot = root //初始化结束以后，就把这个root存下来。保证后续update的时候，自动拿到当前的root
-    root = null
+    currentRoot = wipRoot //初始化结束以后，就把这个root存下来。保证后续update的时候，自动拿到当前的root
+    wipRoot = null
 }
 
 function commitWork(fiber) {
@@ -128,7 +129,7 @@ function updateProps(dom, nextProps, prevProps) {
 }
 
 //注意，函数式组件的children是通过fiber.type()函数执行得到的，可以打印试试
-function initChildren(fiber, children) {
+function reconcileChildren(fiber, children) {
     //注意一开始oldFiber 是可以取child
     //但是一旦一个节点下面有两个节点，那么oldfiber需要更新成sibling
     let oldFiber = fiber.alternate?.child;
@@ -179,7 +180,7 @@ function initChildren(fiber, children) {
 function updateFunctionComponent(fiber) {
     const children = [fiber.type(fiber.props)];
 
-    initChildren(fiber, children);
+    reconcileChildren(fiber, children);
 }
 
 function updateHostComponent(fiber) {
@@ -190,7 +191,7 @@ function updateHostComponent(fiber) {
     }
 
     const children = fiber.props.children;
-    initChildren(fiber, children);
+    reconcileChildren(fiber, children);
 }
 //1. 创建DOM
 //2. 处理props
@@ -229,12 +230,12 @@ function performWorkOfUnit(fiber) {
 requestIdleCallback(workLoop);
 
 function update() {
-    nextWorkOfUnit = {
+    wipRoot = {
         dom: currentRoot.dom,
         props: currentRoot.props,
         alternate: currentRoot //存一份链表指针，指向老的节点；由于一开始都是根节点，因此根节点的老的节点还是根节点本身，只是将来的孩子节点会发生变化
     }
-    root = nextWorkOfUnit
+    nextWorkOfUnit = wipRoot
 }
 const React = {
     update,
