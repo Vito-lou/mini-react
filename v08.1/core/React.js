@@ -46,7 +46,7 @@ function workLoop(deadline) {
         nextWorkOfUnit = performWorkOfUnit(nextWorkOfUnit);
         //foo节点后面是bar节点，这里想找一下当前组件是不是走完了，即将开始渲染下一个组件；这样可以作为控制精确渲染的结尾
         if (wipRoot?.sibling?.type === nextWorkOfUnit?.type) {
-            console.log('hit', wipRoot, nextWorkOfUnit)
+            // console.log('hit', wipRoot, nextWorkOfUnit)
             nextWorkOfUnit = undefined
         }
         shouldYield = deadline.timeRemaining() < 1;
@@ -61,10 +61,39 @@ function workLoop(deadline) {
 function commitRoot() {
     deletions.forEach(commitDeletion)
     commitWork(wipRoot.child)
+    commitEffectHooks() //注意useEffect的执行时机是dom渲染完成以后，所以必须在commitwork之后执行
     //一定要设置为null， 不然会无限在浏览器空闲时调用commitRoot
     currentRoot = wipRoot //初始化结束以后，就把这个root存下来。保证后续update的时候，自动拿到当前的root
     wipRoot = null
     deletions = []
+}
+
+function commitEffectHooks() {
+    function run(fiber) {
+        if (!fiber) return
+        //有fiber.alternate说明是更新，没有说明是初始化
+        if (!fiber.alternate) {
+            //init
+            fiber?.effectHooks?.forEach((hook) => {
+                hook.callBack()
+            })
+        } else {
+            //update
+            //检测deps有没有发生改变
+            const oldEffectHook = fiber?.alternate?.effectHook
+
+            //some
+            const needUpdate = oldEffectHook?.deps.some((oldDep, index) => {
+                return oldDep !== fiber.effectHook.deps[index]
+            })
+
+            needUpdate && fiber.effectHook?.callBack()
+        }
+
+        run(fiber.child)
+        run(fiber.sibling)
+    }
+    run(wipRoot)
 }
 function commitDeletion(fiber) {
     if (fiber.dom) {
@@ -216,6 +245,7 @@ function updateFunctionComponent(fiber) {
     //走hooks初始化, 每次重新渲染都重置一下
     stateHooks = []
     stateHookIndex = 0
+    effectHooks = []
     //标记记录一下当前组件的头，为了方便后续只重新渲染当前组件
     wipFiber = fiber;
 
@@ -273,7 +303,7 @@ requestIdleCallback(workLoop);
 function update() {
     let currentFiber = wipFiber
     return () => {
-        console.log(1, currentFiber)
+        // console.log(1, currentFiber)
         wipRoot = {
             ...currentFiber,
             alternate: currentFiber
@@ -293,9 +323,8 @@ function useState(initial) {
         state: oldHook ? oldHook.state : initial,  //注意initial只是初始化的值，每次组件渲染，不可能值都变成初始化的，而是取上一次的值
         queue: oldHook ? oldHook.queue : []
     }
-    console.log('??')
     stateHook.queue.forEach(action => {
-        console.log(action, typeof action)
+        // console.log(action, typeof action)
         stateHook.state = action(stateHook.state)
     })
     stateHook.queue = []
@@ -319,9 +348,21 @@ function useState(initial) {
     }
     return [stateHook.state, setState]
 }
+
+let effectHooks;
+function useEffect(callBack, deps) {
+    const effectHook = {
+        callBack,
+        deps
+    }
+
+    effectHooks.push(effectHook)
+    wipFiber.effectHooks = effectHooks
+}
 const React = {
     update,
     useState,
+    useEffect,
     render,
     createElement,
 };
