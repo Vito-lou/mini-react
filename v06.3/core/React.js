@@ -268,10 +268,14 @@ function update() {
     return () => {
         console.log(1, currentFiber)
         wipRoot = {
-            dom: currentRoot.dom,
-            props: currentRoot.props,
-            alternate: currentRoot //存一份链表指针，指向老的节点；由于一开始都是根节点，因此根节点的老的节点还是根节点本身，只是将来的孩子节点会发生变化
+            ...currentFiber,
+            alternate: currentFiber
         }
+        // wipRoot = {
+        //     dom: currentRoot.dom,
+        //     props: currentRoot.props,
+        //     alternate: currentRoot //存一份链表指针，指向老的节点；由于一开始都是根节点，因此根节点的老的节点还是根节点本身，只是将来的孩子节点会发生变化
+        // }
         nextWorkOfUnit = wipRoot
     }
 
