@@ -149,6 +149,7 @@ function reconcileChildren(fiber, children) {
     let oldFiber = fiber.alternate?.child;
     let prevChild = null;
     children.forEach((child, index) => {
+        // debugger
         const isSameType = oldFiber && oldFiber.type === child.type
         let newFiber
         if (isSameType) {
@@ -166,15 +167,19 @@ function reconcileChildren(fiber, children) {
 
         } else {
             //create
-            newFiber = {
-                type: child.type,
-                props: child.props,
-                child: null,
-                parent: fiber, //设置parent是为了将来方便找叔叔节点
-                sibling: null,
-                dom: null,
-                effectTag: 'placement'  //这个标识，是用来将来commitWork的时候区分到底这个节点上要更新还是要创建
-            };
+            //有可能child是false
+            if (child) {
+                newFiber = {
+                    type: child.type,
+                    props: child.props,
+                    child: null,
+                    parent: fiber, //设置parent是为了将来方便找叔叔节点
+                    sibling: null,
+                    dom: null,
+                    effectTag: 'placement'  //这个标识，是用来将来commitWork的时候区分到底这个节点上要更新还是要创建
+                };
+            }
+
             if (oldFiber) {
                 deletions.push(oldFiber)
             }
