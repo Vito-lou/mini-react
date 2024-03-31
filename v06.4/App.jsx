@@ -1,7 +1,8 @@
 import React from "./core/React.js"
 
 function Foo() {
-    const [count, setCount] = useState(10)
+    const [count, setCount] = React.useState(10)
+    console.log(count, setCount)
     function handleClick() {
         setCount((c) => c + 1)
     }

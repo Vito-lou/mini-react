@@ -275,17 +275,33 @@ function update() {
             ...currentFiber,
             alternate: currentFiber
         }
-        // wipRoot = {
-        //     dom: currentRoot.dom,
-        //     props: currentRoot.props,
-        //     alternate: currentRoot //存一份链表指针，指向老的节点；由于一开始都是根节点，因此根节点的老的节点还是根节点本身，只是将来的孩子节点会发生变化
-        // }
         nextWorkOfUnit = wipRoot
     }
 
 }
+
+function useState(initial) {
+    let currentFiber = wipFiber
+    //后： 因为之前存了一下，所以现在拿出来
+    const oldHook = currentFiber.alternate?.stateHook
+    const stateHook = {
+        state: oldHook ? oldHook.state : initial  //注意initial只是初始化的值，每次组件渲染，不可能值都变成初始化的，而是取上一次的值
+    }
+    //先： 存一下，这样后面重新渲染的时候，不会说每次的state值都是10，而是会有记录，从记录里面拿上次渲染的state值
+    currentFiber.stateHook = stateHook
+    function setState(action) {
+        stateHook.state = action(stateHook.state)
+        wipRoot = {
+            ...currentFiber,
+            alternate: currentFiber
+        }
+        nextWorkOfUnit = wipRoot
+    }
+    return [stateHook.state, setState]
+}
 const React = {
     update,
+    useState,
     render,
     createElement,
 };
