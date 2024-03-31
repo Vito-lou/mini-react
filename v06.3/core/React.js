@@ -44,7 +44,11 @@ function workLoop(deadline) {
     //注意走到最后一个节点的时候，节点后面一个会是undefined, 因此这里要加上nextWorkOfUnit判断拦截一下，防止报错
     while (!shouldYield && nextWorkOfUnit) {
         nextWorkOfUnit = performWorkOfUnit(nextWorkOfUnit);
-
+        //foo节点后面是bar节点，这里想找一下当前组件是不是走完了，即将开始渲染下一个组件；这样可以作为控制精确渲染的结尾
+        if (wipRoot?.sibling?.type === nextWorkOfUnit?.type) {
+            console.log('hit', wipRoot, nextWorkOfUnit)
+            nextWorkOfUnit = undefined
+        }
         shouldYield = deadline.timeRemaining() < 1;
     }
     //走到这里说明当前的链表处理完了
