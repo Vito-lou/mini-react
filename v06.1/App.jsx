@@ -6,7 +6,10 @@ function Counter() {
     const foo = (
         <div>
             foo
-            <div> child</div>
+            <div> child1</div>
+            <div> child2
+                <div>child2 的child</div>
+            </div>
         </div>
     )
     const bar = <div>bar</div>

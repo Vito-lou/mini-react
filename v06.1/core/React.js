@@ -193,8 +193,9 @@ function reconcileChildren(fiber, children) {
         //第一次循环，把当前的child设置为prevChild,这样后面每次循环，就方便设置当前节点为prevChild的sibling了
         prevChild = newFiber;
     });
-    if (oldFiber) {
+    while (oldFiber) {
         deletions.push(oldFiber)
+        oldFiber = oldFiber.sibling
     }
 }
 
