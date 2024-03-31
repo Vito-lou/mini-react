@@ -75,7 +75,8 @@ function commitEffectHooks() {
         if (!fiber.alternate) {
             //init
             fiber?.effectHooks?.forEach((hook) => {
-                hook.callBack()
+                //初始化的时候执行完callback，可以把callback返回的函数赋值给cleanup存起来; 
+                hook.cleanup = hook.callBack()
             })
         } else {
             //update
@@ -90,7 +91,8 @@ function commitEffectHooks() {
                         return oldDep !== newHook.deps[i]
                     })
 
-                    needUpdate && newHook.callBack()
+                    //这边也是要把return的函数存给cleanup
+                    needUpdate && (newHook.cleanup = newHook.callBack())
                 }
 
             })
@@ -100,6 +102,20 @@ function commitEffectHooks() {
         run(fiber.child)
         run(fiber.sibling)
     }
+    function runCleanup(fiber) {
+        if (!fiber) return
+        //注意：是执行之前节点的effectHooks
+        fiber.alternate?.effectHooks?.forEach(hook => {
+            //只有deps里面不是空数组，才会执行cleanup逻辑
+            if (hook.deps.length > 0) {
+                hook.cleanup && hook.cleanup()
+            }
+
+        })
+        runCleanup(fiber.child)
+        runCleanup(fiber.sibling)
+    }
+    runCleanup(wipRoot) //注意cleanup是在effect执行之前调用
     run(wipRoot)
 }
 function commitDeletion(fiber) {
@@ -360,7 +376,8 @@ let effectHooks;
 function useEffect(callBack, deps) {
     const effectHook = {
         callBack,
-        deps
+        deps,
+        cleanup: undefined
     }
 
     effectHooks.push(effectHook)
