@@ -2,13 +2,14 @@ import React from "./core/React.js"
 
 let showBar = false
 function Counter() {
-    //注意，foo和bar的type不一样，一个是div,一个是p；
-    //如果type一样就没有问题了；type不一样，导致每次点击，页面都是新创建了一个出来
-    // const foo = <div id='foo-id'>foo</div>
-    function Foo() {
-        return <div id='foo-id'>foo</div>
-    }
-    const bar = <p id='bar-id'>bar</p>
+    //注意，点删除按钮，发现foo下面的child没有被删除掉；预期是全部都删除被替换成bar
+    const foo = (
+        <div>
+            foo
+            <div> child</div>
+        </div>
+    )
+    const bar = <div>bar</div>
 
     function handleShowBar() {
         showBar = !showBar
@@ -17,7 +18,7 @@ function Counter() {
     return (
         <div>
             Counter
-            <div>{showBar ? bar : <Foo />}</div>
+            <div>{showBar ? bar : foo}</div>
             <button onClick={handleShowBar}>showBar</button>
         </div>
     )
