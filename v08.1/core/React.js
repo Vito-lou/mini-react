@@ -80,14 +80,21 @@ function commitEffectHooks() {
         } else {
             //update
             //检测deps有没有发生改变
-            const oldEffectHook = fiber?.alternate?.effectHook
+            fiber.effectHooks?.forEach((newHook, index) => {
 
-            //some
-            const needUpdate = oldEffectHook?.deps.some((oldDep, index) => {
-                return oldDep !== fiber.effectHook.deps[index]
+                if (newHook.deps.length > 0) {
+                    const oldEffectHook = fiber?.alternate?.effectHooks[index]
+
+                    //some
+                    const needUpdate = oldEffectHook?.deps.some((oldDep, i) => {
+                        return oldDep !== newHook.deps[i]
+                    })
+
+                    needUpdate && newHook.callBack()
+                }
+
             })
 
-            needUpdate && fiber.effectHook?.callBack()
         }
 
         run(fiber.child)
