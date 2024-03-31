@@ -1,5 +1,6 @@
 import React from "./core/React.js"
 
+//点一下任意子组件，发现3个组件都重新执行了
 let countFoo = 1
 function Foo() {
     console.log('foo return')
@@ -34,6 +35,7 @@ function Bar() {
 
 let countRoot = 1
 function App() {
+    console.log('app return ')
     function handleClick() {
         countRoot++
         React.update()

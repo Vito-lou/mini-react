@@ -38,6 +38,7 @@ let wipRoot = null
 let currentRoot = null // 调用update更新的时候用到
 let nextWorkOfUnit = null;
 let deletions = []
+let wipFiber = null // 记录function component的fiber
 function workLoop(deadline) {
     let shouldYield = false;
     //注意走到最后一个节点的时候，节点后面一个会是undefined, 因此这里要加上nextWorkOfUnit判断拦截一下，防止报错
@@ -208,6 +209,9 @@ function reconcileChildren(fiber, children) {
 }
 
 function updateFunctionComponent(fiber) {
+    //标记记录一下当前组件的头，为了方便后续只重新渲染当前组件
+    wipFiber = fiber;
+
     const children = [fiber.type(fiber.props)];
 
     reconcileChildren(fiber, children);
@@ -260,6 +264,7 @@ function performWorkOfUnit(fiber) {
 requestIdleCallback(workLoop);
 
 function update() {
+    console.log(wipFiber)
     wipRoot = {
         dom: currentRoot.dom,
         props: currentRoot.props,
