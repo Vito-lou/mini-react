@@ -1,4 +1,4 @@
-## 目标：实现批量执行 action
+## 目标：实现批量执行 action, 并且 useState 的 action 支持不传函数形式进来
 
 ### 目标
 
