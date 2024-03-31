@@ -184,7 +184,7 @@ function reconcileChildren(fiber, children) {
             if (oldFiber) {
                 deletions.push(oldFiber)
             }
-            console.log('should delete fiber', oldFiber)
+            // console.log('should delete fiber', oldFiber)
         }
         //当处理第二个孩子的时候，就一定是需要更新oldFiber； 也就是index=0走完以后，接下来走index=1开始，指针需要改变
         if (oldFiber) {
@@ -264,13 +264,17 @@ function performWorkOfUnit(fiber) {
 requestIdleCallback(workLoop);
 
 function update() {
-    console.log(wipFiber)
-    wipRoot = {
-        dom: currentRoot.dom,
-        props: currentRoot.props,
-        alternate: currentRoot //存一份链表指针，指向老的节点；由于一开始都是根节点，因此根节点的老的节点还是根节点本身，只是将来的孩子节点会发生变化
+    let currentFiber = wipFiber
+    return () => {
+        console.log(1, currentFiber)
+        wipRoot = {
+            dom: currentRoot.dom,
+            props: currentRoot.props,
+            alternate: currentRoot //存一份链表指针，指向老的节点；由于一开始都是根节点，因此根节点的老的节点还是根节点本身，只是将来的孩子节点会发生变化
+        }
+        nextWorkOfUnit = wipRoot
     }
-    nextWorkOfUnit = wipRoot
+
 }
 const React = {
     update,
