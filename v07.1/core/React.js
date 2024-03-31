@@ -290,14 +290,23 @@ function useState(initial) {
     //后： 因为之前存了一下，所以现在拿出来
     const oldHook = currentFiber.alternate?.stateHooks[stateHookIndex]
     const stateHook = {
-        state: oldHook ? oldHook.state : initial  //注意initial只是初始化的值，每次组件渲染，不可能值都变成初始化的，而是取上一次的值
+        state: oldHook ? oldHook.state : initial,  //注意initial只是初始化的值，每次组件渲染，不可能值都变成初始化的，而是取上一次的值
+        queue: oldHook ? oldHook.queue : []
     }
+    console.log('??')
+    stateHook.queue.forEach(action => {
+        stateHook.state = action(stateHook.state)
+    })
+    stateHook.queue = []
+
     stateHookIndex++
     stateHooks.push(stateHook)
     //先： 存一下，这样后面重新渲染的时候，不会说每次的state值都是10，而是会有记录，从记录里面拿上次渲染的state值
     currentFiber.stateHooks = stateHooks
     function setState(action) {
-        stateHook.state = action(stateHook.state)
+        //不直接执行action了，而是收集起来，最后统一执行
+        // stateHook.state = action(stateHook.state)
+        stateHook.queue.push(action)
         wipRoot = {
             ...currentFiber,
             alternate: currentFiber
