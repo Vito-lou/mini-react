@@ -3,10 +3,9 @@ import React from "./core/React.js"
 function Foo() {
     const [count, setCount] = React.useState(10)
     const [bar, setBar] = React.useState('bar')
-    console.log(count, setCount)
     function handleClick() {
         setCount((c) => c + 1)
-        setBar(s => s + 'bar')
+        setBar('barbar')
     }
 
     return (

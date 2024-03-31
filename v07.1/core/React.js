@@ -295,6 +295,7 @@ function useState(initial) {
     }
     console.log('??')
     stateHook.queue.forEach(action => {
+        console.log(action, typeof action)
         stateHook.state = action(stateHook.state)
     })
     stateHook.queue = []
@@ -306,7 +307,7 @@ function useState(initial) {
     function setState(action) {
         //不直接执行action了，而是收集起来，最后统一执行
         // stateHook.state = action(stateHook.state)
-        stateHook.queue.push(action)
+        stateHook.queue.push(typeof action === 'function' ? action : () => action)
         wipRoot = {
             ...currentFiber,
             alternate: currentFiber
